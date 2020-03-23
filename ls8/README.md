@@ -65,6 +65,10 @@ but you'll have to implement those three above instructions first!
 * Read this whole file.
 * Skim the spec.
 
+- cpu.py * Contains main CPU class and functions
+- ls8.py * Loads and runs LS-8 emulator
+- examples * Contains .ls8 files for testing
+
 ## Step 1: Add the constructor to `cpu.py`
 
 Add list properties to the `CPU` class to hold 256 bytes of memory and 8
