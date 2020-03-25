@@ -6,15 +6,27 @@ HLT = 0b00000001
 LDI = 0b10000010
 PRN = 0b01000111
 MUL = 0b10100010
+PUSH = 0b01000101
+POP  = 0b01000110
+
+SP = 7
 
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
         """Construct a new CPU."""
+        self.branchtable = {}
+        self.branchtable[LDI] = self.handle_LDI
+        self.branchtable[PRN] = self.handle_PRN
+        self.branchtable[MUL] = self.handle_MUL
+        self.branchtable[PUSH] = self.handle_PUSH
+        self.branchtable[POP] = self.handle_POP
+
         self.pc = 0
         self.ram = [0] * 256
         self.reg = [0] * 8
+        self.reg[SP] = 0xF4
 
     def load(self, filename):
         """Load a program into memory."""
@@ -86,6 +98,34 @@ class CPU:
 
         print()
 
+    def ram_read(self, mar):
+        return self.ram[mar]
+
+    def ram_write(self, mdr, mar):
+        self.ram[mar] = mdr
+
+    def handle_LDI(self, operand_a, operand_b):
+        self.reg[operand_a] = operand_b
+        self.pc +=3
+
+    def handle_PRN(self, operand_a, operand_b):
+        print(self.reg[operand_a])
+        self.pc +=2
+
+    def handle_MUL(self, operand_a, operand_b):
+        self.alu("MUL", operand_a, operand_b)
+        self.pc += 3
+
+    def handle_PUSH(self, operand_a, operand_b):
+        self.reg[SP] -= 1
+        self.ram_write(self.reg[operand_a], self.reg[SP])
+        self.pc += 2
+
+    def handle_POP(self, operand_a, operand_b):
+        self.reg[operand_a] = self.ram[self.reg[SP]]
+        self.reg[SP] += 1
+        self.pc += 2
+
     def run(self):
         """Run the CPU."""
         running = True
@@ -98,24 +138,20 @@ class CPU:
                 running = False
                 sys.exit(1)
 
-            elif ir == LDI:
-                self.reg[operand_a] = operand_b
-                self.pc += 3
+            self.branchtable[ir](operand_a, operand_b)
 
-            elif ir == PRN:
-                print(self.reg[operand_a])
-                self.pc += 2
+            # elif ir == LDI:
+            #     self.reg[operand_a] = operand_b
+            #     self.pc += 3
 
-            elif ir == MUL:
-                self.alu("MUL", operand_a, operand_b)
-                self.pc += 3
+            # elif ir == PRN:
+            #     print(self.reg[operand_a])
+            #     self.pc += 2
 
-            else:
-                print(f"Unknown command: {ir}")
-                sys.exit(1)
+            # elif ir == MUL:
+            #     self.alu("MUL", operand_a, operand_b)
+            #     self.pc += 3
 
-    def ram_read(self, mar):
-        return self.ram[mar]
-
-    def ram_write(self, mdr, mar):
-        self.ram[mar] = mdr
+            # else:
+            #     print(f"Unknown command: {ir}")
+            #     sys.exit(1)
