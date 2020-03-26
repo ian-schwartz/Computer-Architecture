@@ -8,6 +8,9 @@ PRN = 0b01000111
 MUL = 0b10100010
 PUSH = 0b01000101
 POP  = 0b01000110
+ADD  = 0b10100000
+CALL = 0b01010000
+RET  = 0b00010001
 
 SP = 7
 
@@ -22,6 +25,9 @@ class CPU:
         self.branchtable[MUL] = self.handle_MUL
         self.branchtable[PUSH] = self.handle_PUSH
         self.branchtable[POP] = self.handle_POP
+        self.branchtable[ADD] = self.handle_ADD
+        self.branchtable[CALL] = self.handle_CALL
+        self.branchtable[RET] = self.handle_RET
 
         self.pc = 0
         self.ram = [0] * 256
@@ -125,6 +131,19 @@ class CPU:
         self.reg[operand_a] = self.ram[self.reg[SP]]
         self.reg[SP] += 1
         self.pc += 2
+
+    def handle_ADD(self, operand_a, operand_b):
+        self.alu("ADD", operand_a, operand_b)
+        self.pc += 3
+
+    def handle_CALL(self, operand_a, operand_b):
+        self.reg[SP] -= 1
+        self.ram[self.reg[SP]] = self.pc + 2 
+        self.pc = self.reg[operand_a]
+
+    def handle_RET(self, operand_a, operand_b):
+        self.pc = self.ram[self.reg[SP]]
+        self.reg[SP] += 1
 
     def run(self):
         """Run the CPU."""
